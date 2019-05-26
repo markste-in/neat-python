@@ -137,6 +137,7 @@ class Config(object):
                 ConfigParameter('fitness_criterion', str),
                 ConfigParameter('fitness_threshold', float),
                 ConfigParameter('reset_on_extinction', bool),
+                ConfigParameter('reset_with_best', bool),
                 ConfigParameter('no_fitness_termination', bool, False)]
 
     def __init__(self, genome_type, reproduction_type, species_set_type, stagnation_type, filename):
