@@ -122,9 +122,7 @@ class Population(object):
                 # otherwise raise an exception.
                 if self.config.reset_on_extinction:
                     if self.config.reset_with_best:
-                        self.population = self.reproduction.create_new_from_existing(self.config.genome_type,
-                                                                                     self.config.genome_config,
-                                                                                     self.config.pop_size,
+                        self.population = self.reproduction.create_new_from_existing(self.config.pop_size,
                                                                                      self.best_genome)
                     else:
                         self.population = self.reproduction.create_new(self.config.genome_type,

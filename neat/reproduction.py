@@ -50,7 +50,7 @@ class DefaultReproduction(DefaultClassConfig):
 
         return new_genomes
 
-    def create_new_from_existing(self, genome_type, genome_config, num_genomes, survivor):
+    def create_new_from_existing(self, num_genomes, survivor):
         new_genomes = {}
         for i in range(num_genomes):
             key = next(self.genome_indexer)
