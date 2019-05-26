@@ -7,6 +7,7 @@ from __future__ import division
 import math
 import random
 from itertools import count
+import copy
 
 from neat.config import ConfigParameter, DefaultClassConfig
 from neat.math_util import mean
@@ -45,6 +46,18 @@ class DefaultReproduction(DefaultClassConfig):
             g = genome_type(key)
             g.configure_new(genome_config)
             new_genomes[key] = g
+            self.ancestors[key] = tuple()
+
+        return new_genomes
+
+    def create_new_from_existing(self, genome_type, genome_config, num_genomes, survivor):
+        new_genomes = {}
+        for i in range(num_genomes):
+            key = next(self.genome_indexer)
+
+            survivor.key = key
+            new_genomes[key] = copy.deepcopy(survivor)
+
             self.ancestors[key] = tuple()
 
         return new_genomes

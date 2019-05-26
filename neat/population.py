@@ -4,6 +4,7 @@ from __future__ import print_function
 from neat.reporting import ReporterSet
 from neat.math_util import mean
 from neat.six_util import iteritems, itervalues
+import copy
 
 
 class CompleteExtinctionException(Exception):
@@ -49,6 +50,7 @@ class Population(object):
             self.population, self.species, self.generation = initial_state
 
         self.best_genome = None
+        #self.ultimate = None
 
     def add_reporter(self, reporter):
         self.reporters.add(reporter)
@@ -80,6 +82,7 @@ class Population(object):
             raise RuntimeError("Cannot have no generational limit with no fitness termination")
 
         k = 0
+
         while n is None or k < n:
             k += 1
 
@@ -97,7 +100,8 @@ class Population(object):
 
             # Track the best genome ever seen.
             if self.best_genome is None or best.fitness > self.best_genome.fitness:
-                self.best_genome = best
+                self.best_genome = copy.deepcopy(best)
+                print("New ultimate record", self.best_genome.fitness, "key",self.best_genome.key)
 
             if not self.config.no_fitness_termination:
                 # End if the fitness threshold is reached.
@@ -117,9 +121,14 @@ class Population(object):
                 # If requested by the user, create a completely new population,
                 # otherwise raise an exception.
                 if self.config.reset_on_extinction:
-                    self.population = self.reproduction.create_new(self.config.genome_type,
+                    # self.population = self.reproduction.create_new(self.config.genome_type,
+                    #                                                self.config.genome_config,
+                    #                                                self.config.pop_size)
+                    self.population = self.reproduction.create_new_from_existing(self.config.genome_type,
                                                                    self.config.genome_config,
-                                                                   self.config.pop_size)
+                                                                   self.config.pop_size,
+                                                                   self.best_genome)
+
                 else:
                     raise CompleteExtinctionException()
 
