@@ -83,62 +83,69 @@ class Population(object):
 
         k = 0
 
-        while n is None or k < n:
-            k += 1
+        try:
+            while n is None or k < n:
 
-            self.reporters.start_generation(self.generation)
+                k += 1
 
-            # Evaluate all genomes using the user-provided function.
-            fitness_function(list(iteritems(self.population)), self.config)
+                self.reporters.start_generation(self.generation)
 
-            # Gather and report statistics.
-            best = None
-            for g in itervalues(self.population):
-                if best is None or g.fitness > best.fitness:
-                    best = g
-            self.reporters.post_evaluate(self.config, self.population, self.species, best)
+                # Evaluate all genomes using the user-provided function.
+                fitness_function(list(iteritems(self.population)), self.config)
 
-            # Track the best genome ever seen.
-            if self.best_genome is None or best.fitness > self.best_genome.fitness:
-                self.best_genome = copy.deepcopy(best)
-                print("New ultimate record", self.best_genome.fitness, "key",self.best_genome.key)
+                # Gather and report statistics.
+                best = None
+                for g in itervalues(self.population):
+                    if best is None or g.fitness > best.fitness:
+                        best = g
+                self.reporters.post_evaluate(self.config, self.population, self.species, best)
 
-            if not self.config.no_fitness_termination:
-                # End if the fitness threshold is reached.
-                fv = self.fitness_criterion(g.fitness for g in itervalues(self.population))
-                if fv >= self.config.fitness_threshold:
-                    self.reporters.found_solution(self.config, self.generation, best)
-                    break
+                # Track the best genome ever seen.
+                if self.best_genome is None or best.fitness > self.best_genome.fitness:
+                    self.best_genome = copy.deepcopy(best)
+                    print("New ultimate record", self.best_genome.fitness, "key",self.best_genome.key)
 
-            # Create the next generation from the current generation.
-            self.population = self.reproduction.reproduce(self.config, self.species,
-                                                          self.config.pop_size, self.generation)
+                if not self.config.no_fitness_termination:
+                    # End if the fitness threshold is reached.
+                    fv = self.fitness_criterion(g.fitness for g in itervalues(self.population))
+                    if fv >= self.config.fitness_threshold:
+                        self.reporters.found_solution(self.config, self.generation, best)
+                        break
 
-            # Check for complete extinction.
-            if not self.species.species:
-                self.reporters.complete_extinction()
+                # Create the next generation from the current generation.
+                self.population = self.reproduction.reproduce(self.config, self.species,
+                                                              self.config.pop_size, self.generation)
 
-                # If requested by the user, create a completely new population,
-                # otherwise raise an exception.
-                if self.config.reset_on_extinction:
-                    if self.config.reset_with_best:
-                        self.population = self.reproduction.create_new_from_existing(self.config.pop_size,
-                                                                                     self.best_genome)
+                # Check for complete extinction.
+                if not self.species.species:
+                    self.reporters.complete_extinction()
+
+                    # If requested by the user, create a completely new population,
+                    # otherwise raise an exception.
+                    if self.config.reset_on_extinction:
+                        if self.config.reset_with_best:
+                            self.population = self.reproduction.create_new_from_existing(self.config.pop_size,
+                                                                                         self.best_genome)
+                        else:
+                            self.population = self.reproduction.create_new(self.config.genome_type,
+                                                                           self.config.genome_config,
+                                                                           self.config.pop_size)
+
+
                     else:
-                        self.population = self.reproduction.create_new(self.config.genome_type,
-                                                                       self.config.genome_config,
-                                                                       self.config.pop_size)
+                        raise CompleteExtinctionException()
 
 
-                else:
-                    raise CompleteExtinctionException()
+                # Divide the new population into species.
+                self.species.speciate(self.config, self.population, self.generation)
 
-            # Divide the new population into species.
-            self.species.speciate(self.config, self.population, self.generation)
+                self.reporters.end_generation(self.config, self.population, self.species)
 
-            self.reporters.end_generation(self.config, self.population, self.species)
+                self.generation += 1
 
-            self.generation += 1
+        except KeyboardInterrupt:
+            print("Returning best genome ...")
+
 
         if self.config.no_fitness_termination:
             self.reporters.found_solution(self.config, self.generation, self.best_genome)
