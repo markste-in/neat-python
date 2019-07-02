@@ -55,6 +55,9 @@ def softplus_activation(z):
 def identity_activation(z):
     return z
 
+def n_identity_activation(z):
+    return -z
+
 
 def clamped_activation(z):
     return max(-1.0, min(1.0, z))
@@ -128,6 +131,7 @@ class ActivationFunctionSet(object):
         self.add('selu', selu_activation)
         self.add('softplus', softplus_activation)
         self.add('identity', identity_activation)
+        self.add('nidentity', n_identity_activation)
         self.add('clamped', clamped_activation)
         self.add('inv', inv_activation)
         self.add('log', log_activation)
